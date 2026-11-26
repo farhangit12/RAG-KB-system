@@ -100,6 +100,17 @@ class LLM(Protocol):
 
 
 @runtime_checkable
+class RateLimiter(Protocol):
+    """Decides whether a caller (e.g. an IP address) may make another request now."""
+
+    window_seconds: int
+
+    def allow(self, key: str) -> bool:
+        """Record one request for ``key``; return False if it is over the limit."""
+        ...
+
+
+@runtime_checkable
 class DocumentLoader(Protocol):
     """Reads one file into one or more Documents."""
 

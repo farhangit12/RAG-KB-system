@@ -8,9 +8,17 @@ from app.core.container import Container
 from app.core.ports import ScoredChunk
 from app.features.chat.models import Answer, SourceRef
 from app.features.chat.prompts import SYSTEM_PROMPT, build_user_prompt
-from app.features.retrieval.service import QueryFilters, retrieve
+from app.features.retrieval.service import QueryFilters, UserContext, retrieve
 
-__all__ = ["Answer", "SourceRef", "answer", "stream_answer", "to_source_refs"]
+__all__ = [
+    "Answer",
+    "QueryFilters",
+    "SourceRef",
+    "UserContext",
+    "answer",
+    "stream_answer",
+    "to_source_refs",
+]
 
 
 def to_source_refs(chunks: Sequence[ScoredChunk]) -> list[SourceRef]:
@@ -30,22 +38,34 @@ def to_source_refs(chunks: Sequence[ScoredChunk]) -> list[SourceRef]:
 
 
 def _prepare(
-    container: Container, question: str, filters: QueryFilters | None
+    container: Container,
+    question: str,
+    filters: QueryFilters | None,
+    context: UserContext | None,
 ) -> tuple[str, list[ScoredChunk]]:
     chunks = retrieve(container, question, filters=filters)
-    return build_user_prompt(question, chunks), chunks
+    ctx = context or UserContext()
+    return build_user_prompt(question, chunks, stage=ctx.stage, sector=ctx.sector), chunks
 
 
-def answer(container: Container, question: str, filters: QueryFilters | None = None) -> Answer:
+def answer(
+    container: Container,
+    question: str,
+    filters: QueryFilters | None = None,
+    context: UserContext | None = None,
+) -> Answer:
     """Retrieve sources and return a grounded, cited answer."""
-    prompt, chunks = _prepare(container, question, filters)
+    prompt, chunks = _prepare(container, question, filters, context)
     text = container.llm.generate(SYSTEM_PROMPT, prompt)
     return Answer(text=text, sources=to_source_refs(chunks))
 
 
 def stream_answer(
-    container: Container, question: str, filters: QueryFilters | None = None
+    container: Container,
+    question: str,
+    filters: QueryFilters | None = None,
+    context: UserContext | None = None,
 ) -> tuple[list[SourceRef], Iterator[str]]:
     """Like ``answer`` but returns the sources first and the text as a stream."""
-    prompt, chunks = _prepare(container, question, filters)
+    prompt, chunks = _prepare(container, question, filters, context)
     return to_source_refs(chunks), container.llm.stream(SYSTEM_PROMPT, prompt)

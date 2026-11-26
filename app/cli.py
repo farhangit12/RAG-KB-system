@@ -94,5 +94,14 @@ def ask(
         typer.echo(f"  - [{ref.title}] ({ref.source}, score {ref.score:.2f})")
 
 
+@app.command()
+def serve(reload: Annotated[bool, typer.Option(help="Restart on code changes.")] = False) -> None:
+    """Run the HTTP API (host/port from HOST and PORT settings)."""
+    import uvicorn
+
+    s = get_settings()
+    uvicorn.run("app.main:create_app", factory=True, host=s.host, port=s.port, reload=reload)
+
+
 if __name__ == "__main__":
     app()

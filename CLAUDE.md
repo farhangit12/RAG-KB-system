@@ -59,7 +59,7 @@ the registry in `app/core/container.py`, add a test.
 - [x] Slice 0: skeleton
 - [x] Slice 1: thinnest RAG (CLI): `python -m app.cli ingest`, `python -m app.cli ask "..."`
 - [x] Slice 2: metadata + incremental ingestion (`ingest --rebuild`, `ask --type faq --stage idea`)
-- [ ] Slice 3: HTTP API
+- [x] Slice 3: HTTP API (`python -m app.cli serve`; POST /chat, POST /chat/stream, GET /health)
 - [ ] Slice 4: personalization
 - [ ] Slice 5: evaluation
 - [ ] Slice 6: feedback

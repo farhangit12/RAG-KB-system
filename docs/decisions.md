@@ -60,6 +60,15 @@ rule lives in `app/core/metadata_keys.py`, shared by ingestion and retrieval.
 Internal files are never indexed, and retrieval still always adds `visibility=public`
 to every query, as a second safety layer.
 
+## 013. API: app factory, SSE, rate limit behind a port
+`create_app(settings, container)` builds the app, so tests inject fakes and nothing runs
+at import time (run with `uvicorn app.main:create_app --factory`). `/chat/stream` sends
+SSE events `sources`, `token`..., then `done` or `error`. The rate limiter is a
+`RateLimiter` port (in-memory sliding window now; Redis later for many instances). Behind
+a proxy, set `TRUST_PROXY_HEADERS=true` so the real client IP from `X-Forwarded-For` is
+used. CORS allows only the origins in `CORS_ORIGINS`. Input limits are settings and
+violations return 422; LLM failures return 502 with a friendly message.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.

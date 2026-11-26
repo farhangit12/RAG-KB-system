@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from app.core.container import Container
 from app.core.ports import ScoredChunk
-from app.features.retrieval.models import QueryFilters
+from app.features.retrieval.models import QueryFilters, UserContext
 
-__all__ = ["PUBLIC_ONLY", "QueryFilters", "retrieve"]
+__all__ = ["PUBLIC_ONLY", "QueryFilters", "UserContext", "retrieve"]
 
 PUBLIC_ONLY: dict[str, str] = {"visibility": "public"}
 

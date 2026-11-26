@@ -9,6 +9,14 @@ from app.core.ports import MetadataValue
 
 
 @dataclass(frozen=True)
+class UserContext:
+    """What we know about the asker. Used to tailor and (Slice 4) rank results."""
+
+    stage: str | None = None
+    sector: str | None = None
+
+
+@dataclass(frozen=True)
 class QueryFilters:
     """Optional metadata filters. Lists mean "any of"."""
 

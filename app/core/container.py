@@ -16,7 +16,7 @@ from functools import cached_property
 from typing import Any
 
 from app.core.config import Settings, get_settings
-from app.core.ports import LLM, DocumentLoader, Embedder, VectorStore
+from app.core.ports import LLM, DocumentLoader, Embedder, RateLimiter, VectorStore
 
 EMBEDDERS: dict[str, str] = {
     "chroma_default": "app.adapters.embedders.chroma_default:build",
@@ -32,6 +32,9 @@ LLMS: dict[str, str] = {
 }
 LOADERS: dict[str, str] = {
     "markdown": "app.adapters.loaders.markdown_loader:build",
+}
+RATE_LIMITERS: dict[str, str] = {
+    "memory": "app.adapters.ratelimiters.memory:build",
 }
 
 
@@ -74,6 +77,11 @@ class Container:
     def loader(self) -> DocumentLoader:
         """The configured DocumentLoader."""
         return _resolve("loader", self.settings.loader, LOADERS)(self.settings)
+
+    @cached_property
+    def rate_limiter(self) -> RateLimiter:
+        """The configured RateLimiter."""
+        return _resolve("rate_limiter", self.settings.rate_limiter, RATE_LIMITERS)(self.settings)
 
 
 def build_container(settings: Settings | None = None) -> Container:

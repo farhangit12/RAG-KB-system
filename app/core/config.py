@@ -47,7 +47,15 @@ class Settings(BaseSettings):
     top_k: int = Field(default=5, gt=0)
 
     # API
+    host: str = "127.0.0.1"
+    port: int = 8000
     cors_origins: list[str] = ["https://disha-advisory-vert.vercel.app"]
+    max_question_chars: int = Field(default=1000, gt=0)
+    max_sector_chars: int = Field(default=60, gt=0)
+    rate_limiter: str = "memory"
+    rate_limit_requests: int = Field(default=20, gt=0)
+    rate_limit_window_seconds: int = Field(default=60, gt=0)
+    trust_proxy_headers: bool = False  # true behind Render/Railway so X-Forwarded-For is used
 
 
 @lru_cache
