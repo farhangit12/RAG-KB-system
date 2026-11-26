@@ -1,0 +1,45 @@
+# Evaluation questions. Run: python -m app.cli eval
+#
+# Each item:
+#   id:               short unique name
+#   question:         what a founder might ask
+#   expected_sources: content files that SHOULD be retrieved (paths under content/).
+#                     Leave empty [] for questions the knowledge base does not cover.
+#   stage / sector:   optional user context (idea | early | traction; any sector text)
+#   notes:            what a good answer looks like, for you when reading the report
+#
+# These match the SAMPLE content. Update them when you replace the samples.
+
+- id: ten-people
+  question: "I have an idea for an app. Who should I talk to before I build anything?"
+  expected_sources: [frameworks/disha-path.md]
+  stage: idea
+  notes: "Should use the Disha Path step 'talk to ten real people' and end with a next step for this week."
+
+- id: direction-call
+  question: "How can I get one-on-one help from Sara and Anshuman?"
+  expected_sources: [faq/direction-call.md]
+  notes: "Should mention the ₹99 Direction Call and how to book it."
+
+- id: first-startup-failed
+  question: "My first startup failed. Did that ever happen to the Disha founders?"
+  expected_sources: [stories/sara-and-anshuman.md]
+  notes: "Should mention Waterpro failing and what Anshuman did next. Must not invent details."
+
+- id: social-impact-pitch
+  question: "How should a social-impact startup think about positioning and its pitch?"
+  expected_sources: [case-studies/bhumi.md]
+  stage: early
+  sector: social-impact
+  notes: "Can reference BHUMI as a client, but must not invent BHUMI's results."
+
+- id: health-product
+  question: "I'm building a home health test. Has anyone at Disha done something similar?"
+  expected_sources: [stories/sara-and-anshuman.md]
+  sector: health-tech
+  notes: "Should mention Sara and VitaScan (home vitamin test, patent filed)."
+
+- id: out-of-scope-valuation
+  question: "What valuation should I ask for in a Series A round?"
+  expected_sources: []
+  notes: "Not covered. Should say so, give only labelled general advice, no numbers, maybe suggest a Direction Call."

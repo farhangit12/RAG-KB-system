@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     disha_path_source: str = "frameworks/disha-path.md"  # "" disables pinning
     disha_path_min_score: float = 0.30  # pin it only when at least this similar
 
+    # Evaluation (Slice 5)
+    eval_questions_path: Path = Path("eval/questions.yaml")
+    reports_dir: Path = Path("reports")
+
     # API
     host: str = "127.0.0.1"
     port: int = 8000

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -11,6 +12,7 @@ from app.core.container import Container, build_container
 from app.core.logging import configure_logging
 from app.core.ports import LLMError
 from app.features.chat import service as chat
+from app.features.evaluation import service as evaluation
 from app.features.ingestion import service as ingestion
 from app.features.retrieval.service import QueryFilters
 
@@ -92,6 +94,25 @@ def ask(
     typer.echo("\nSources:")
     for ref in result.sources:
         typer.echo(f"  - [{ref.title}] ({ref.source}, score {ref.score:.2f})")
+
+
+@app.command("eval")
+def evaluate(
+    answers: Annotated[
+        bool, typer.Option(help="Also generate answers with the LLM (costs API calls).")
+    ] = True,
+    questions: Annotated[Path | None, typer.Option(help="Questions YAML file.")] = None,
+    out: Annotated[Path | None, typer.Option(help="Folder for the report.")] = None,
+) -> None:
+    """Run the test questions, print retrieval hit rates and save a markdown report."""
+    report = evaluation.run_eval(_container(), questions, with_answers=answers, out_dir=out)
+    for r in report.results:
+        rate = "n/a " if r.hit_rate is None else f"{r.hit_rate:4.0%}"
+        flag = " (error)" if r.error else ""
+        typer.echo(f"{rate}  {r.item.id}{flag}")
+    mean = report.mean_hit_rate
+    typer.echo(f"mean hit rate: {'n/a' if mean is None else f'{mean:.0%}'}")
+    typer.echo(f"report: {report.report_path}")
 
 
 @app.command()

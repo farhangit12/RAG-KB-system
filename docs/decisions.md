@@ -77,6 +77,13 @@ Path file (`DISHA_PATH_SOURCE`) replaces the last result when its best chunk sco
 least `DISHA_PATH_MIN_SCORE` and it's missing; this lookup applies the same filters, so
 an explicit `type=faq` filter is respected. Tune these values with `cli eval`.
 
+## 015. Evaluation measures retrieval automatically, answers by human reading
+Hit rate per question = share of `expected_sources` found among the retrieved files
+(the same pipeline as chat, including personalization). Questions with no expected
+sources (out of scope) are reported but not scored. Answer quality (voice, citations, no
+invented numbers) is judged by a person reading `reports/eval-*.md`, since an automatic
+judge would cost API calls and need its own calibration. `--no-answers` runs for free.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.

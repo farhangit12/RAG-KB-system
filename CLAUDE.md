@@ -61,6 +61,6 @@ the registry in `app/core/container.py`, add a test.
 - [x] Slice 2: metadata + incremental ingestion (`ingest --rebuild`, `ask --type faq --stage idea`)
 - [x] Slice 3: HTTP API (`python -m app.cli serve`; POST /chat, POST /chat/stream, GET /health)
 - [x] Slice 4: personalization (BOOST_STAGE, BOOST_SECTOR, DISHA_PATH_MIN_SCORE)
-- [ ] Slice 5: evaluation
+- [x] Slice 5: evaluation (`eval/questions.yaml`; `python -m app.cli eval [--no-answers]` -> `reports/`)
 - [ ] Slice 6: feedback
 - [ ] Slice 7: deploy readiness
