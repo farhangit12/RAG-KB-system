@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     # LLM
     anthropic_api_key: SecretStr | None = None
     anthropic_model: str = "claude-sonnet-5-5"
-    llm_max_tokens: int = Field(default=2048, gt=0)
+    llm_max_tokens: int = Field(default=8000, gt=0)
+    llm_effort: str = "medium"  # low | medium | high | xhigh | max
+    llm_refusal_fallback: bool = True  # retry on a fallback model if the main one declines
 
     # Chunking and retrieval
     chunk_size: int = Field(default=800, gt=100)

@@ -77,6 +77,14 @@ class VectorStore(Protocol):
         """Return the number of stored chunks."""
         ...
 
+    def reset(self) -> None:
+        """Delete everything (used when the embedder or chunking settings change)."""
+        ...
+
+
+class LLMError(RuntimeError):
+    """The LLM could not produce an answer (network, auth, rate limit, server error)."""
+
 
 @runtime_checkable
 class LLM(Protocol):

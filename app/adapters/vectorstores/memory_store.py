@@ -62,6 +62,10 @@ class MemoryVectorStore:
         """Number of stored chunks."""
         return len(self._items)
 
+    def reset(self) -> None:
+        """Remove everything."""
+        self._items.clear()
+
 
 def build(settings: Settings) -> MemoryVectorStore:
     """Factory used by the container."""

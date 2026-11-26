@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -30,3 +31,17 @@ def settings(tmp_path: Path) -> Settings:
 def container(settings: Settings) -> Container:
     """Container wired with offline adapters."""
     return Container(settings)
+
+
+@pytest.fixture
+def content_copy(tmp_path: Path) -> Path:
+    """A writable copy of the content folder, for tests that change files."""
+    dest = tmp_path / "content"
+    shutil.copytree(REPO_ROOT / "content", dest)
+    return dest
+
+
+@pytest.fixture
+def tmp_container(settings: Settings, content_copy: Path) -> Container:
+    """Offline container pointed at the writable content copy."""
+    return Container(settings.model_copy(update={"content_dir": content_copy}))

@@ -19,15 +19,20 @@ from app.core.config import Settings, get_settings
 from app.core.ports import LLM, DocumentLoader, Embedder, VectorStore
 
 EMBEDDERS: dict[str, str] = {
+    "chroma_default": "app.adapters.embedders.chroma_default:build",
     "fake": "app.adapters.embedders.fake:build",
 }
 VECTOR_STORES: dict[str, str] = {
+    "chroma": "app.adapters.vectorstores.chroma_store:build",
     "memory": "app.adapters.vectorstores.memory_store:build",
 }
 LLMS: dict[str, str] = {
+    "anthropic": "app.adapters.llms.anthropic_llm:build",
     "fake": "app.adapters.llms.fake:build",
 }
-LOADERS: dict[str, str] = {}
+LOADERS: dict[str, str] = {
+    "markdown": "app.adapters.loaders.markdown_loader:build",
+}
 
 
 class AdapterNotFoundError(ValueError):
