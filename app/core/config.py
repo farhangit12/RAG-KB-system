@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     collection_public: str = "disha_public"
 
+    # Qdrant (only when VECTOR_STORE=qdrant)
+    qdrant_url: str = ""  # "" = local files in DATA_DIR/qdrant, ":memory:", or https://...
+    qdrant_api_key: SecretStr | None = None
+
     # Adapter choice: names are looked up in app/core/container.py registries.
     vector_store: str = "chroma"
     embedder: str = "chroma_default"

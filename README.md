@@ -20,6 +20,26 @@ ruff check .
 pytest
 ```
 
+## Use it
+```
+python -m app.cli ingest                       # index content/ (only changed files next time)
+python -m app.cli ask "Who should I talk to before I build?" --stage idea
+python -m app.cli eval --no-answers            # retrieval hit rates, free
+python -m app.cli eval                         # + answers in reports/ (uses the API)
+python -m app.cli serve                        # API at http://127.0.0.1:8000/docs
+python -m app.cli feedback                     # latest thumbs up/down
+```
+The first `ingest` downloads the local embedding model (~80 MB).
+
+## API
+- `POST /chat` `{"question": "...", "user_context": {"stage": "idea", "sector": "edtech"}}`
+  -> `{"answer": "...", "sources": [{"title", "source", "type", "score"}]}`
+- `POST /chat/stream`: same body; server-sent events `sources`, `token`..., `done`
+- `POST /feedback` `{"question", "answer", "sources", "rating": "up"|"down", "comment"}`
+- `GET /health`
+
+Deploying: see [docs/deploy.md](docs/deploy.md).
+
 ## Adding content
 Put markdown files in `content/stories`, `content/frameworks`, `content/case-studies`
 or `content/faq`, with frontmatter like:

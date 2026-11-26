@@ -63,4 +63,13 @@ the registry in `app/core/container.py`, add a test.
 - [x] Slice 4: personalization (BOOST_STAGE, BOOST_SECTOR, DISHA_PATH_MIN_SCORE)
 - [x] Slice 5: evaluation (`eval/questions.yaml`; `python -m app.cli eval [--no-answers]` -> `reports/`)
 - [x] Slice 6: feedback (POST /feedback -> SQLite at DATA_DIR/feedback.db; `python -m app.cli feedback`)
-- [ ] Slice 7: deploy readiness
+- [x] Slice 7: deploy readiness (Dockerfile, docs/deploy.md, Qdrant adapter: `VECTOR_STORE=qdrant`)
+
+## CLI cheat sheet
+```
+python -m app.cli ingest [--rebuild]
+python -m app.cli ask "question" [--type faq] [--stage idea] [--sector edtech]
+python -m app.cli eval [--no-answers]
+python -m app.cli feedback
+python -m app.cli serve            # http://127.0.0.1:8000/docs
+```

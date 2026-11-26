@@ -9,10 +9,12 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+from qdrant_client import QdrantClient
 
 from app.adapters.embedders.fake import FakeEmbedder
 from app.adapters.vectorstores.chroma_store import ChromaVectorStore, to_chroma_where
 from app.adapters.vectorstores.memory_store import MemoryVectorStore
+from app.adapters.vectorstores.qdrant_store import QdrantVectorStore, point_id
 from app.core.ports import Chunk, VectorStore
 
 StoreFactory = Callable[[Path], VectorStore]
@@ -20,6 +22,7 @@ StoreFactory = Callable[[Path], VectorStore]
 FACTORIES: dict[str, StoreFactory] = {
     "memory": lambda _: MemoryVectorStore(),
     "chroma": lambda p: ChromaVectorStore(p / "chroma", "contract_test", batch_size=2),
+    "qdrant": lambda _: QdrantVectorStore(QdrantClient(location=":memory:"), "contract_test", 2),
 }
 
 
@@ -76,6 +79,10 @@ def test_reset_and_empty_query(store: VectorStore) -> None:
     store.reset()
     assert store.count() == 0
     assert store.query(EMB.embed(["x"])[0], top_k=3) == []
+
+
+def test_qdrant_point_ids_are_stable_uuids() -> None:
+    assert point_id("faq/a.md#0") == point_id("faq/a.md#0") != point_id("faq/a.md#1")
 
 
 def test_chroma_where_translation() -> None:

@@ -25,6 +25,7 @@ EMBEDDERS: dict[str, str] = {
 VECTOR_STORES: dict[str, str] = {
     "chroma": "app.adapters.vectorstores.chroma_store:build",
     "memory": "app.adapters.vectorstores.memory_store:build",
+    "qdrant": "app.adapters.vectorstores.qdrant_store:build",  # needs the [qdrant] extra
 }
 LLMS: dict[str, str] = {
     "anthropic": "app.adapters.llms.anthropic_llm:build",

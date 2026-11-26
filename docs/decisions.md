@@ -91,6 +91,17 @@ adapters a feature alone uses stay in the feature). SQLite opens a connection pe
 operation (thread-safe) with WAL mode. No IP or other personal data is stored. On a
 multi-instance deploy, swap in a Postgres repository behind the same port.
 
+## 017. Deploy as one Docker container with a disk at /app/data
+Render or Railway, not Vercel serverless (no persistent disk, cold starts). The image
+bakes in the embedding model and the content, and runs an incremental `ingest` on every
+start, so the index rebuilds itself even without a disk. Only feedback strictly needs
+the disk. See `docs/deploy.md`.
+
+## 018. Qdrant as an optional extra
+`qdrant-client` is an optional extra (`.[qdrant]`) so the default install stays small; it
+is in the `dev` extra so the contract tests always cover it. Payloads nest metadata under
+`metadata.*` so chunk fields never collide with our own `text`/`chunk_id` keys.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.
