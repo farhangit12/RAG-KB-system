@@ -25,9 +25,16 @@ def test_ingest_then_ask(monkeypatch: pytest.MonkeyPatch, tmp_container: Contain
 
     ingested = runner.invoke(cli.app, ["ingest"])
     assert ingested.exit_code == 0, ingested.output
-    assert "indexed 4 files" in ingested.output
+    assert "added 4, updated 0, unchanged 0, removed 0" in ingested.output
+
+    again = runner.invoke(cli.app, ["ingest"])
+    assert "added 0, updated 0, unchanged 4, removed 0; 0 chunks written" in again.output
 
     asked = runner.invoke(cli.app, ["ask", "What is the Disha Path?"])
     assert asked.exit_code == 0, asked.output
     assert "FAKE ANSWER" in asked.output
     assert "[The Disha Path] (frameworks/disha-path.md" in asked.output
+
+    filtered = runner.invoke(cli.app, ["ask", "What is the Disha Path?", "--type", "faq"])
+    assert "(faq/direction-call.md" in filtered.output
+    assert "frameworks/disha-path.md" not in filtered.output

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 import typer
 
 from app.core.config import get_settings
@@ -10,6 +12,7 @@ from app.core.logging import configure_logging
 from app.core.ports import LLMError
 from app.features.chat import service as chat
 from app.features.ingestion import service as ingestion
+from app.features.retrieval.service import QueryFilters
 
 app = typer.Typer(help="Disha RAG knowledge assistant.", no_args_is_help=True)
 
@@ -39,20 +42,49 @@ def info() -> None:
     typer.echo(f"data_dir:       {s.data_dir}")
 
 
-@app.command()
-def ingest() -> None:
-    """Index the content folder into the vector store."""
-    report = ingestion.ingest(_container())
-    typer.echo(f"indexed {len(report.added)} files, {report.chunks_written} chunks")
-    if report.skipped_internal:
-        typer.echo(f"skipped internal: {', '.join(report.skipped_internal)}")
+Many = Annotated[list[str] | None, typer.Option()]
 
 
 @app.command()
-def ask(question: str) -> None:
-    """Ask a question and print a cited answer."""
+def ingest(
+    rebuild: Annotated[bool, typer.Option(help="Re-embed everything from scratch.")] = False,
+) -> None:
+    """Index the content folder. Only new or changed files are re-embedded."""
+    r = ingestion.ingest(_container(), rebuild=rebuild)
+    if r.rebuilt:
+        typer.echo("full rebuild")
+    typer.echo(
+        f"added {len(r.added)}, updated {len(r.updated)}, unchanged {len(r.unchanged)}, "
+        f"removed {len(r.removed)}; {r.chunks_written} chunks written"
+    )
+    for label, items in (("added", r.added), ("updated", r.updated), ("removed", r.removed)):
+        for item in items:
+            typer.echo(f"  {label}: {item}")
+    if r.skipped_internal:
+        typer.echo(f"skipped internal: {', '.join(r.skipped_internal)}")
+
+
+@app.command()
+def ask(
+    question: str,
+    type_: Annotated[
+        list[str] | None, typer.Option("--type", help="story | framework | case_study | faq")
+    ] = None,
+    stage: Annotated[list[str] | None, typer.Option(help="idea | early | traction")] = None,
+    sector: Many = None,
+    person: Annotated[list[str] | None, typer.Option(help="e.g. Sara")] = None,
+    topic: Many = None,
+) -> None:
+    """Ask a question and print a cited answer. Filters are optional and repeatable."""
+    filters = QueryFilters(
+        type=type_ or [],
+        stage=stage or [],
+        sector=sector or [],
+        people=person or [],
+        topics=topic or [],
+    )
     try:
-        result = chat.answer(_container(), question)
+        result = chat.answer(_container(), question, filters=filters)
     except LLMError as e:
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(1) from e

@@ -58,7 +58,7 @@ the registry in `app/core/container.py`, add a test.
 ## Build status
 - [x] Slice 0: skeleton
 - [x] Slice 1: thinnest RAG (CLI): `python -m app.cli ingest`, `python -m app.cli ask "..."`
-- [ ] Slice 2: metadata + incremental ingestion
+- [x] Slice 2: metadata + incremental ingestion (`ingest --rebuild`, `ask --type faq --stage idea`)
 - [ ] Slice 3: HTTP API
 - [ ] Slice 4: personalization
 - [ ] Slice 5: evaluation

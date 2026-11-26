@@ -43,6 +43,23 @@ declines, the user gets a short message pointing to a Direction Call. API errors
 `tests/adapters/test_vectorstore_contract.py` runs the same tests against every
 VectorStore adapter. A new adapter is "swappable" when it passes that file.
 
+## 010. Incremental ingestion with a manifest and a fingerprint
+`DATA_DIR/manifest-<collection>.json` stores a SHA-256 per file. Unchanged files are
+skipped, changed files have their old chunks deleted and are re-embedded, removed files
+are deleted. A fingerprint (embedder, store, collection, chunk size/overlap, chunker
+version) triggers a full rebuild when any of those change, since old vectors would be
+wrong or a different size. If the store is empty but the manifest says it shouldn't be
+(index wiped), it rebuilds too.
+
+## 011. List metadata as boolean flags
+`people: [Sara]` is stored as `people: "Sara"` (for display) plus `people_sara: True`
+(for filtering), because list filters aren't portable across vector stores. The naming
+rule lives in `app/core/metadata_keys.py`, shared by ingestion and retrieval.
+
+## 012. Visibility enforced at query time too
+Internal files are never indexed, and retrieval still always adds `visibility=public`
+to every query, as a second safety layer.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.
