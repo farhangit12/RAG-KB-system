@@ -84,6 +84,13 @@ sources (out of scope) are reported but not scored. Answer quality (voice, citat
 invented numbers) is judged by a person reading `reports/eval-*.md`, since an automatic
 judge would cost API calls and need its own calibration. `--no-answers` runs for free.
 
+## 016. Feedback repository lives inside the feedback feature
+Only the feedback feature uses `FeedbackRepository`, so its port, the SQLite adapter and
+a small `FEEDBACK_REPO` registry live in `app/features/feedback/` (vertical-slice rule:
+adapters a feature alone uses stay in the feature). SQLite opens a connection per
+operation (thread-safe) with WAL mode. No IP or other personal data is stored. On a
+multi-instance deploy, swap in a Postgres repository behind the same port.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.

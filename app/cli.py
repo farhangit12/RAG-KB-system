@@ -13,6 +13,7 @@ from app.core.logging import configure_logging
 from app.core.ports import LLMError
 from app.features.chat import service as chat
 from app.features.evaluation import service as evaluation
+from app.features.feedback import service as feedback_service
 from app.features.ingestion import service as ingestion
 from app.features.retrieval.service import QueryFilters
 
@@ -113,6 +114,17 @@ def evaluate(
     mean = report.mean_hit_rate
     typer.echo(f"mean hit rate: {'n/a' if mean is None else f'{mean:.0%}'}")
     typer.echo(f"report: {report.report_path}")
+
+
+@app.command()
+def feedback(limit: Annotated[int, typer.Option(help="How many to show.")] = 20) -> None:
+    """Show the most recent feedback, newest first."""
+    repo = feedback_service.build_repository(get_settings())
+    for r in feedback_service.recent(repo, limit):
+        icon = "+" if r.rating == "up" else "-"
+        typer.echo(f"[{icon}] #{r.id} {r.created_at}  {r.question}")
+        if r.comment:
+            typer.echo(f"      comment: {r.comment}")
 
 
 @app.command()

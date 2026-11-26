@@ -57,6 +57,13 @@ class Settings(BaseSettings):
     eval_questions_path: Path = Path("eval/questions.yaml")
     reports_dir: Path = Path("reports")
 
+    # Feedback (Slice 6)
+    feedback_repo: str = "sqlite"
+    feedback_db_path: Path | None = None  # default: DATA_DIR/feedback.db
+    max_answer_chars: int = Field(default=20000, gt=0)
+    max_comment_chars: int = Field(default=1000, gt=0)
+    max_feedback_sources: int = Field(default=20, gt=0)
+
     # API
     host: str = "127.0.0.1"
     port: int = 8000

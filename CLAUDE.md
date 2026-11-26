@@ -62,5 +62,5 @@ the registry in `app/core/container.py`, add a test.
 - [x] Slice 3: HTTP API (`python -m app.cli serve`; POST /chat, POST /chat/stream, GET /health)
 - [x] Slice 4: personalization (BOOST_STAGE, BOOST_SECTOR, DISHA_PATH_MIN_SCORE)
 - [x] Slice 5: evaluation (`eval/questions.yaml`; `python -m app.cli eval [--no-answers]` -> `reports/`)
-- [ ] Slice 6: feedback
+- [x] Slice 6: feedback (POST /feedback -> SQLite at DATA_DIR/feedback.db; `python -m app.cli feedback`)
 - [ ] Slice 7: deploy readiness
