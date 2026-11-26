@@ -1,0 +1,21 @@
+# secrets
+.env
+
+# environments
+.venv/
+venv/
+
+# generated index, manifest, feedback db
+data/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# reports produced by `python -m app.cli eval`
+reports/
