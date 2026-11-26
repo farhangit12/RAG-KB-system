@@ -69,6 +69,14 @@ a proxy, set `TRUST_PROXY_HEADERS=true` so the real client IP from `X-Forwarded-
 used. CORS allows only the origins in `CORS_ORIGINS`. Input limits are settings and
 violations return 422; LLM failures return 502 with a friendly message.
 
+## 014. Personalization is additive re-ranking
+Retrieval fetches `RETRIEVAL_CANDIDATES` (20) chunks, adds `BOOST_STAGE` / `BOOST_SECTOR`
+(0.10 each) to chunks whose metadata matches the asker, then keeps `TOP_K`. Boosts only
+re-order relevant candidates; they never pull in chunks that weren't retrieved. The Disha
+Path file (`DISHA_PATH_SOURCE`) replaces the last result when its best chunk scores at
+least `DISHA_PATH_MIN_SCORE` and it's missing; this lookup applies the same filters, so
+an explicit `type=faq` filter is respected. Tune these values with `cli eval`.
+
 ## 006. Settings read the API key into `SecretStr`
 `ANTHROPIC_API_KEY` is read by pydantic-settings and passed explicitly to the client, so
 it works from `.env` as well as real env vars, and is never printed in logs or `repr`.

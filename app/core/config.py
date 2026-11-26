@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     embed_batch_size: int = Field(default=64, gt=0)
     top_k: int = Field(default=5, gt=0)
 
+    # Personalization (Slice 4)
+    retrieval_candidates: int = Field(default=20, gt=0)  # fetched before re-ranking
+    boost_stage: float = 0.10  # added to the score when founder_stage matches the asker
+    boost_sector: float = 0.10  # added when sector matches
+    disha_path_source: str = "frameworks/disha-path.md"  # "" disables pinning
+    disha_path_min_score: float = 0.30  # pin it only when at least this similar
+
     # API
     host: str = "127.0.0.1"
     port: int = 8000

@@ -43,7 +43,7 @@ def _prepare(
     filters: QueryFilters | None,
     context: UserContext | None,
 ) -> tuple[str, list[ScoredChunk]]:
-    chunks = retrieve(container, question, filters=filters)
+    chunks = retrieve(container, question, filters=filters, context=context)
     ctx = context or UserContext()
     return build_user_prompt(question, chunks, stage=ctx.stage, sector=ctx.sector), chunks
 
