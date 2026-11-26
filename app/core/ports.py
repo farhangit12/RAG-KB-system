@@ -6,7 +6,7 @@ library. Concrete adapters live in ``app/adapters`` and are chosen in config.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
@@ -21,7 +21,11 @@ Filter = Mapping[str, MetadataValue | Sequence[MetadataValue]]
 
 @dataclass(frozen=True)
 class Document:
-    """One loaded source file: its text plus metadata (from frontmatter or inferred)."""
+    """One loaded source file: its text plus metadata (from frontmatter or inferred).
+
+    ``text`` is markdown. Loaders for PDF and DOCX add ``<!-- page: N -->`` lines so chunks
+    can cite page numbers.
+    """
 
     source: str
     text: str
@@ -79,6 +83,44 @@ class VectorStore(Protocol):
 
 
 @runtime_checkable
+class KeywordSearch(Protocol):
+    """Optional extra for a VectorStore: exact-word search (scheme names, company names)."""
+
+    def keyword_query(
+        self, text: str, top_k: int, where: Filter | None = None
+    ) -> list[ScoredChunk]:
+        """Return up to ``top_k`` chunks containing the words of ``text``, best first."""
+        ...
+
+
+@runtime_checkable
+class Exportable(Protocol):
+    """Optional extra for a VectorStore: dump and reload everything (backups)."""
+
+    def export_items(self) -> Iterator[tuple[Chunk, list[float]]]:
+        """Yield every stored chunk with its vector."""
+        ...
+
+
+@runtime_checkable
+class Reranker(Protocol):
+    """Scores how well each text answers a question (a cross-encoder)."""
+
+    def score(self, query: str, texts: Sequence[str]) -> list[float]:
+        """Return one score in [0, 1] per text, same order. Higher is better."""
+        ...
+
+
+@runtime_checkable
+class TokenCounter(Protocol):
+    """Counts tokens the way the embedding model sees them."""
+
+    def count(self, text: str) -> int:
+        """Return the number of tokens in ``text``."""
+        ...
+
+
+@runtime_checkable
 class LLM(Protocol):
     """A text generation model."""
 
@@ -100,3 +142,9 @@ class DocumentLoader(Protocol):
     def load(self, path: Path, root: Path) -> list[Document]:
         """Load ``path``; ``source`` is the path relative to ``root`` (forward slashes)."""
         ...
+
+
+def batched(items: Sequence[Any], size: int) -> Iterable[Sequence[Any]]:
+    """Split ``items`` into lists of at most ``size`` (used for embedding batches)."""
+    for i in range(0, len(items), size):
+        yield items[i : i + size]

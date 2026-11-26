@@ -16,18 +16,33 @@ from functools import cached_property
 from typing import Any
 
 from app.core.config import Settings, get_settings
-from app.core.ports import LLM, DocumentLoader, Embedder, VectorStore
+from app.core.ports import LLM, DocumentLoader, Embedder, Reranker, TokenCounter, VectorStore
 
 EMBEDDERS: dict[str, str] = {
     "fake": "app.adapters.embedders.fake:build",
+    "bge_m3": "app.adapters.embedders.bge_m3:build",
 }
 VECTOR_STORES: dict[str, str] = {
     "memory": "app.adapters.vectorstores.memory_store:build",
+    "oracle": "app.adapters.vectorstores.oracle_store:build",
+    "chroma": "app.adapters.vectorstores.chroma_store:build",
+}
+RERANKERS: dict[str, str] = {
+    "fake": "app.adapters.rerankers.fake:build",
+    "bge": "app.adapters.rerankers.bge:build",
 }
 LLMS: dict[str, str] = {
     "fake": "app.adapters.llms.fake:build",
+    "groq": "app.adapters.llms.groq:build",
 }
-LOADERS: dict[str, str] = {}
+LOADERS: dict[str, str] = {
+    "auto": "app.adapters.loaders.auto:build",
+    "markdown": "app.adapters.loaders.markdown:build",
+}
+TOKENIZERS: dict[str, str] = {
+    "estimate": "app.adapters.tokenizers.estimate:build",
+    "hf": "app.adapters.tokenizers.hf:build",
+}
 
 
 class AdapterNotFoundError(ValueError):
@@ -61,6 +76,11 @@ class Container:
         return _resolve("vector_store", self.settings.vector_store, VECTOR_STORES)(self.settings)
 
     @cached_property
+    def reranker(self) -> Reranker:
+        """The configured Reranker."""
+        return _resolve("reranker", self.settings.reranker, RERANKERS)(self.settings)
+
+    @cached_property
     def llm(self) -> LLM:
         """The configured LLM."""
         return _resolve("llm", self.settings.llm, LLMS)(self.settings)
@@ -69,6 +89,11 @@ class Container:
     def loader(self) -> DocumentLoader:
         """The configured DocumentLoader."""
         return _resolve("loader", self.settings.loader, LOADERS)(self.settings)
+
+    @cached_property
+    def tokenizer(self) -> TokenCounter:
+        """The configured TokenCounter."""
+        return _resolve("tokenizer", self.settings.tokenizer, TOKENIZERS)(self.settings)
 
 
 def build_container(settings: Settings | None = None) -> Container:

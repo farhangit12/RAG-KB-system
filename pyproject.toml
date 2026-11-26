@@ -12,15 +12,23 @@ dependencies = [
     "typer>=0.12",
     "fastapi>=0.115",
     "uvicorn>=0.30",
-    "chromadb>=0.5",
-    "anthropic>=0.40",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
+# Production: Oracle AI Vector Search (Account 1 Autonomous AI Database).
+oracle = ["oracledb>=2.2"]
+# Local models: bge-m3 embeddings, bge-reranker-v2-m3, exact token counts.
+models = ["sentence-transformers>=3.0"]
+# PDF and DOCX extraction (Docling, MIT) with basic fallbacks.
+docs = ["docling>=2.0", "pypdf>=4.0", "python-docx>=1.1"]
+# Optional local vector store for laptops without Oracle.
+chroma = ["chromadb>=0.5"]
+all = ["disha-rag[oracle,models,docs]"]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",
-    "httpx>=0.27",
 ]
 
 [build-system]
@@ -41,3 +49,10 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI and Typer use calls in defaults by design.
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.File", "fastapi.Form", "fastapi.Header",
+    "typer.Argument", "typer.Option",
+]

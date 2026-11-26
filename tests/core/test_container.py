@@ -4,13 +4,16 @@ import pytest
 
 from app.core.config import Settings
 from app.core.container import AdapterNotFoundError, Container
-from app.core.ports import LLM, Embedder, VectorStore
+from app.core.ports import LLM, DocumentLoader, Embedder, Reranker, TokenCounter, VectorStore
 
 
 def test_builds_configured_adapters(container: Container) -> None:
     assert isinstance(container.embedder, Embedder)
     assert isinstance(container.vector_store, VectorStore)
     assert isinstance(container.llm, LLM)
+    assert isinstance(container.reranker, Reranker)
+    assert isinstance(container.loader, DocumentLoader)
+    assert isinstance(container.tokenizer, TokenCounter)
 
 
 def test_adapters_are_created_once(container: Container) -> None:

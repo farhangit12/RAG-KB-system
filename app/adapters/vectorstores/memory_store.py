@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 
 from app.core.config import Settings
 from app.core.ports import Chunk, Filter, MetadataValue, ScoredChunk
+from app.core.text import keyword_terms
 
 
 def _cosine(a: Sequence[float], b: Sequence[float]) -> float:
@@ -57,6 +58,30 @@ class MemoryVectorStore:
         ]
         scored.sort(key=lambda s: s.score, reverse=True)
         return scored[:top_k]
+
+    def keyword_query(
+        self, text: str, top_k: int, where: Filter | None = None
+    ) -> list[ScoredChunk]:
+        """Simple TF-IDF style word match, the in-memory stand-in for Oracle Text."""
+        terms = keyword_terms(text)
+        if not terms:
+            return []
+        docs = [c for c, _ in self._items.values() if matches(c.metadata, where)]
+        n = len(docs) or 1
+        lowered = {c.id: c.text.lower() for c in docs}
+        df = {t: sum(1 for c in docs if t in lowered[c.id]) for t in terms}
+        scored = []
+        for c in docs:
+            body = lowered[c.id]
+            s = sum(body.count(t) * math.log(1 + n / (1 + df[t])) for t in terms if t in body)
+            if s > 0:
+                scored.append(ScoredChunk(chunk=c, score=s))
+        scored.sort(key=lambda s: s.score, reverse=True)
+        return scored[:top_k]
+
+    def export_items(self) -> Iterator[tuple[Chunk, list[float]]]:
+        """Yield every chunk with its vector (for backups)."""
+        yield from self._items.values()
 
     def count(self) -> int:
         """Number of stored chunks."""

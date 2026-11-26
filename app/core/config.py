@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,24 +28,74 @@ class Settings(BaseSettings):
     collection_public: str = "disha_public"
 
     # Adapter choice: names are looked up in app/core/container.py registries.
-    vector_store: str = "chroma"
-    embedder: str = "chroma_default"
-    llm: str = "anthropic"
-    loader: str = "markdown"
+    # Defaults are the zero-budget stack (decision 007): no paid API anywhere.
+    vector_store: str = "oracle"
+    embedder: str = "bge_m3"
+    reranker: str = "bge"
+    llm: str = "groq"
+    loader: str = "auto"
+    tokenizer: str = "estimate"
 
-    # LLM
-    anthropic_api_key: SecretStr | None = None
-    anthropic_model: str = "claude-sonnet-5-5"
-    llm_max_tokens: int = Field(default=2048, gt=0)
+    # LLM (Groq free plan, OpenAI-compatible API)
+    groq_api_key: SecretStr | None = None
+    groq_model: str = "openai/gpt-oss-120b"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_timeout_s: float = Field(default=60.0, gt=0)
+    groq_max_retries: int = Field(default=3, ge=0)
+    llm_max_tokens: int = Field(default=1500, gt=0)
+    llm_temperature: float = Field(default=0.2, ge=0, le=2)
 
-    # Chunking and retrieval
-    chunk_size: int = Field(default=800, gt=100)
-    chunk_overlap: int = Field(default=100, ge=0)
-    embed_batch_size: int = Field(default=64, gt=0)
-    top_k: int = Field(default=5, gt=0)
+    # Local models (run on our own VM, so no API cost)
+    embed_model: str = "BAAI/bge-m3"
+    embed_dim: int = Field(default=1024, gt=0)
+    rerank_model: str = "BAAI/bge-reranker-v2-m3"
+    model_device: str = "cpu"
+
+    # Oracle KB DB (Account 1 Always Free Autonomous AI Database)
+    oracle_user: str = ""
+    oracle_password: SecretStr | None = None
+    oracle_dsn: str = ""
+    oracle_wallet_dir: str = ""
+    oracle_wallet_password: SecretStr | None = None
+    oracle_table: str = "kb_chunks"
+    oracle_approx_search: bool = False   # turn on after the vector index is created
+
+    # Upload rules
+    max_file_mb: int = Field(default=10, gt=0)
+
+    # Chunking (tokens): 500 with 75 overlap, so a new chunk every 425 tokens
+    chunk_size: int = Field(default=500, gt=100)
+    chunk_overlap: int = Field(default=75, ge=0)
+    csv_rows_per_block: int = Field(default=25, gt=0)
+    embed_batch_size: int = Field(default=16, gt=0)
+
+    # Retrieval
+    top_k: int = Field(default=20, gt=0)            # candidates from each search
+    rrf_k: int = Field(default=60, gt=0)            # reciprocal rank fusion constant
+    profile_boost: float = Field(default=0.15, ge=0)
+    rerank_keep: int = Field(default=3, gt=0)
+    rerank_min_score: float = Field(default=0.2, ge=0, le=1)
+
+    # Packing: the sources must fit inside one Groq call (6,000 input tokens in total)
+    pack_token_budget: int = Field(default=1500, gt=0)
+    max_input_tokens: int = Field(default=6000, gt=0)
+
+    # Backups (JSONL export; copy the folder to Account 4 Object Storage)
+    backup_dir: Path = Path("data/backups")
+
+    # API: when set, every request must send it in the X-API-Key header.
+    # The main Disha backend calls this service; founders never call it directly.
+    service_api_key: SecretStr | None = None
+    max_upload_mb: int = Field(default=10, gt=0)
 
     # API
     cors_origins: list[str] = ["https://disha-advisory-vert.vercel.app"]
+
+    @model_validator(mode="after")
+    def _overlap_below_size(self) -> Settings:
+        if self.chunk_overlap >= self.chunk_size:
+            raise ValueError("chunk_overlap must be smaller than chunk_size")
+        return self
 
 
 @lru_cache

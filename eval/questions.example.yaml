@@ -1,0 +1,9 @@
+# Retrieval test questions. Run: python -m app.cli eval eval/questions.example.yaml
+# These point at the SAMPLE files in content/. Replace with real founder questions
+# written by Disha, each with the file that should answer it.
+
+- question: "What is a Direction Call and how do I book one?"
+  expected_sources: ["faq/direction-call.md"]
+
+- question: "What happened with BHUMI's positioning and pitch?"
+  expected_sources: ["case-studies/bhumi.md"]

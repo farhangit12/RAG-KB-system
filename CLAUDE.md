@@ -1,14 +1,15 @@
 # CLAUDE.md: Disha RAG knowledge base
 
 RAG assistant that answers founder questions from Disha's own content (`content/`),
-in Disha's warm, direct voice, with citations.
+in Disha's warm, direct voice, with citations. Zero budget: no paid service anywhere
+(decision 007). Pipeline: `docs/rag-pipeline.md`.
 
 ## How to run (Windows PowerShell)
 ```
 py -3.13 -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
-copy .env.example .env      # then fill in ANTHROPIC_API_KEY
+python -m pip install -e ".[dev]"          # add ,all for Oracle, local models, Docling
+copy .env.example .env      # then fill in GROQ_API_KEY, ORACLE_*, SERVICE_API_KEY
 python -m app.cli info
 ```
 
@@ -17,8 +18,8 @@ python -m app.cli info
 ruff check .
 pytest
 ```
-Tests never need an API key: use `fake` embedder, `fake` LLM, `memory` vector store
-(see `tests/conftest.py`).
+Tests never need an API key, a database or a model download: use `fake` embedder,
+`fake` reranker, `fake` LLM, `memory` vector store (see `tests/conftest.py`).
 
 ## Architecture rules
 - **Vertical slices**: `app/features/<name>/` owns its models, service, routes and tests
@@ -26,8 +27,9 @@ Tests never need an API key: use `fake` embedder, `fake` LLM, `memory` vector st
   `service.py`, never internal files.
 - **Ports and adapters**: external dependencies are Protocols in `app/core/ports.py`.
   Implementations live in `app/adapters/<kind>/`. The adapter is picked by config only
-  (`VECTOR_STORE`, `EMBEDDER`, `LLM`, `LOADER`) via registries in `app/core/container.py`.
-  Feature code must never import chromadb, anthropic, etc. directly.
+  (`VECTOR_STORE`, `EMBEDDER`, `RERANKER`, `LLM`, `LOADER`, `TOKENIZER`) via registries in
+  `app/core/container.py`. Feature code must never import oracledb, sentence-transformers,
+  docling, chromadb, httpx clients, etc. directly.
 - Config only through `app/core/config.py` (pydantic-settings). No hard-coded values.
 - Logging via `app.core.logging.get_logger(__name__)` with `extra={...}` fields.
 - Small typed functions; docstrings on public functions.
@@ -48,19 +50,24 @@ the registry in `app/core/container.py`, add a test.
 ## Content rules
 - Markdown with YAML frontmatter: title, type, people, founder_stage, sector, topics,
   date, visibility. Missing `type` is inferred from the folder.
+- PDF, DOCX, TXT, CSV: same fields in a `<file name>.meta.yaml` sidecar. Max 10 MB.
+- Market reports need `publisher` and `publication_year`; `valid_until` retires old items.
 - `visibility: internal` files are never indexed into the public collection.
+- `visibility: private` is for one founder's uploads and needs `business_id`; the access
+  filter is applied in the store query.
 - **Never invent Disha content, client outcomes, numbers or quotes.**
 
 ## Safety
-- Never commit secrets. The API key comes only from env vars / `.env` (gitignored).
-- Ask the user before adding paid services or major new dependencies.
+- Never commit secrets. Keys come only from env vars / `.env` (gitignored).
+- Ask the user before adding paid services or major new dependencies. Never upgrade an
+  Oracle account to Pay As You Go, and never add billing details to Groq.
 
 ## Build status
 - [x] Slice 0: skeleton
-- [ ] Slice 1: thinnest RAG (CLI)
-- [ ] Slice 2: metadata + incremental ingestion
-- [ ] Slice 3: HTTP API
-- [ ] Slice 4: personalization
-- [ ] Slice 5: evaluation
+- [x] Slice 1: thinnest RAG (CLI): ingest, ask
+- [x] Slice 2: metadata + incremental ingestion (manifest, sidecars, private uploads)
+- [x] Slice 3: HTTP API (`/ask`, uploads, delete, health; X-API-Key)
+- [x] Slice 4: personalization (sector / stage / location boost, private files)
+- [x] Slice 5: evaluation (hit rate at k, MRR) + backups
 - [ ] Slice 6: feedback
 - [ ] Slice 7: deploy readiness
